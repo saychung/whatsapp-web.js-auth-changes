@@ -43,12 +43,25 @@ class LocalAuth extends BaseAuthStrategy {
     }
 
     async logout() {
-        if (this.userDataDir) {
-            await fs.promises.rm(this.userDataDir, { recursive: true, force: true })
-                .catch((e) => {
-                    throw new Error(e);
-                });
+        const maxRetries = 5;
+        let attempt = 0;
+        const delay = 1000;
+        while (attempt < maxRetries) {
+            try {
+                await fs.promises.rm(this.userDataDir, { recursive: true, force: true });
+                console.log("Successfully logged out and deleted session directory");
+                return;
+            } catch (error) {
+                    console.warn(`Attempt ${attempt + 1} failed, retrying in ${delay}ms...`);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    attempt++;
+            }
         }
+
+
+
+
+
     }
 
 }
